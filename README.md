@@ -1,2 +1,2 @@
 # AndroidWeatherApp
-Cool weather App with Yahoo weather API
+Simple weather App with Yahoo weather API
