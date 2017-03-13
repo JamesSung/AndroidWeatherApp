@@ -13,6 +13,10 @@ import com.cambrian.weatherapp.data.Forecast;
 
 import java.util.List;
 
+/**
+ * Created by sung on 2017-03-14.
+ */
+
 public class DailyWeatherListAdapter extends ArrayAdapter<Forecast> {
 
     private List<Forecast> forecasts;

@@ -1,32 +1,43 @@
 package com.cambrian.weatherapp;
 
+import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.View;
 
 import com.cambrian.weatherapp.data.Astronomy;
 import com.cambrian.weatherapp.data.Atmosphere;
+import com.cambrian.weatherapp.data.Channel;
 import com.cambrian.weatherapp.data.Forecast;
+import com.cambrian.weatherapp.data.Item;
 import com.cambrian.weatherapp.data.Units;
 import com.cambrian.weatherapp.data.Wind;
-import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import com.cambrian.weatherapp.data.Channel;
-import com.cambrian.weatherapp.data.Item;
 import com.cambrian.weatherapp.service.WeatherServiceCallback;
 import com.cambrian.weatherapp.service.YahooWeatherService;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
 
-public class WeatherActivity extends AppCompatActivity implements WeatherServiceCallback {
+/**
+ * Created by sung on 2017-03-14.
+ */
+
+public class WeatherSlidePageFragment extends Fragment implements WeatherServiceCallback {
+
+    String[] cities = {"Toronto, ON","Vancouver, BC","Quebec, QC","Ottawa, ON","Montreal, QC"};
 
     private ImageView weatherIcon;
     private TextView temperature;
@@ -42,33 +53,77 @@ public class WeatherActivity extends AppCompatActivity implements WeatherService
     private SlidingUpPanelLayout slidingLayout;
     private ArrayList<Forecast> forecasts;
     private ListView listView;
+    private EditText city;
+    /**
+     * The argument key for the page number this fragment represents.
+     */
+    public static final String ARG_PAGE = "page";
+
+    /**
+     * The fragment's page number, which is set to the argument value for {@link #ARG_PAGE}.
+     */
+    private int mPageNumber;
+
+    /**
+     * Factory method for this fragment class. Constructs a new fragment for the given page number.
+     */
+    public static WeatherSlidePageFragment create(int pageNumber) {
+        WeatherSlidePageFragment fragment = new WeatherSlidePageFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_PAGE, pageNumber);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public WeatherSlidePageFragment() {
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_weather);
+        mPageNumber = getArguments().getInt(ARG_PAGE);
+    }
 
-        weatherIcon = (ImageView)findViewById(R.id.weatherIconImageView);
-        temperature = (TextView)findViewById(R.id.txtTemp);
-        condition = (TextView)findViewById(R.id.txtCond);
-        location = (TextView)findViewById(R.id.txtLoc);
-        humidity = (TextView)findViewById(R.id.txtHumid);
-        //visibility = (TextView)findViewById(R.id.txtVisib);
-        sunset = (TextView)findViewById(R.id.txtSunset);
-        sunrise = (TextView)findViewById(R.id.txtSunrise);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+
+        ViewGroup rootView = (ViewGroup) inflater
+                .inflate(R.layout.weather_slide_page, container, false);
+
+        city = (EditText)rootView.findViewById(R.id.edtxtCity);
+
+        weatherIcon = (ImageView)rootView.findViewById(R.id.weatherIconImageView);
+        temperature = (TextView)rootView.findViewById(R.id.txtTemp);
+        condition = (TextView)rootView.findViewById(R.id.txtCond);
+        location = (TextView)rootView.findViewById(R.id.txtLoc);
+        humidity = (TextView)rootView.findViewById(R.id.txtHumid);
+        //visibility = (TextView)rootView.findViewById(R.id.txtVisib);
+        sunset = (TextView)rootView.findViewById(R.id.txtSunset);
+        sunrise = (TextView)rootView.findViewById(R.id.txtSunrise);
 
         service = new YahooWeatherService(this);
-        dialog = new ProgressDialog(this);
+        dialog = new ProgressDialog(getContext());
         dialog.setMessage("Loading..");
         dialog.show();
 
         //service.refreshWeather("Austin, TX");
-        service.refreshWeather("Toronto, ON");//Default City
+        service.refreshWeather(cities[mPageNumber]);//Default City
 
-        //set layout slide listener
-        slidingLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
-        //slidingLayout.setPanelSlideListener(onSlideListener());
+        slidingLayout = (SlidingUpPanelLayout)rootView.findViewById(R.id.sliding_layout);
+
+        listView = (ListView) rootView.findViewById(R.id.dailyList);
+
+        Button go = (Button)rootView.findViewById(R.id.btnGo);
+        go.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                loadWeather(v);
+            }
+        });
+
+        return rootView;
     }
+
 
     @Override
     public void serviceSuccess(Channel channel) {
@@ -80,7 +135,7 @@ public class WeatherActivity extends AppCompatActivity implements WeatherService
         Wind wind = channel.getWind();
         Astronomy astronomy = channel.getAstronomy();
         Atmosphere atmosphere = channel.getAtmosphere();
-        int resourceId = getResources().getIdentifier("drawable/icon_"+String.valueOf(item.getCondition().getCode()), null, getPackageName());
+        int resourceId = getResources().getIdentifier("drawable/icon_"+String.valueOf(item.getCondition().getCode()), null, getActivity().getPackageName());
 
         @SuppressWarnings("deprecation")
         Drawable weatherIconDrauable = getResources().getDrawable(resourceId);
@@ -100,27 +155,33 @@ public class WeatherActivity extends AppCompatActivity implements WeatherService
         //sunset.setText("Sunset: " + astronomy.getSunset());
 
         DailyWeatherListAdapter adapter = new DailyWeatherListAdapter(
-                this, R.layout.daily_list, new ArrayList<Forecast>());
-        listView = (ListView) findViewById(R.id.dailyList);
+                getActivity(), R.layout.daily_list, new ArrayList<Forecast>());
+
         listView.setAdapter(adapter);
 
         new DailyWeatherTask().execute();
     }
 
-    public void loadWeather(View view) {
-        EditText city = (EditText) findViewById(R.id.edtxtCity);
+    private void loadWeather(View view) {
+
+        city.clearFocus();
+
+        InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        mgr.hideSoftInputFromWindow(city.getWindowToken(), 0);
+
         String strCity = city.getText().toString();
-        //Toast.makeText(WeatherActivity.this,strCity,Toast.LENGTH_LONG).show();
+
         if(strCity == null || strCity.length() == 0){
-            Toast.makeText(WeatherActivity.this,"Input City and State!",Toast.LENGTH_LONG).show();
-            return;
-        }else if(strCity.indexOf(",") == -1){
-            Toast.makeText(WeatherActivity.this,"Input City and State(ex: Tronto, ON)!",Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(),"Input City and State!",Toast.LENGTH_LONG).show();
             return;
         }
+        /*else if(strCity.indexOf(",") == -1){
+            Toast.makeText(WeatherActivity.this,"Input City and State(ex: Tronto, ON)!",Toast.LENGTH_LONG).show();
+            return;
+        }*/
 
         //service = new YahooWeatherService(this);
-        dialog = new ProgressDialog(this);
+        dialog = new ProgressDialog(getContext());
         dialog.setMessage("Loading..");
         dialog.show();
 
@@ -131,37 +192,9 @@ public class WeatherActivity extends AppCompatActivity implements WeatherService
     @Override
     public void serviceFailure(Exception exception) {
         dialog.hide();
-        Toast.makeText(this, exception.getMessage(),Toast.LENGTH_LONG).show();
+        Toast.makeText(getContext(), exception.getMessage(),Toast.LENGTH_LONG).show();
     }
 
-    private SlidingUpPanelLayout.PanelSlideListener onSlideListener() {
-        return new SlidingUpPanelLayout.PanelSlideListener() {
-            @Override
-            public void onPanelSlide(View view, float v) {
-                //textView.setText("panel is sliding");
-            }
-
-            @Override
-            public void onPanelCollapsed(View view) {
-                //textView.setText("panel Collapse");
-            }
-
-            @Override
-            public void onPanelExpanded(View view) {
-                //textView.setText("panel expand");
-            }
-
-            @Override
-            public void onPanelAnchored(View view) {
-                //textView.setText("panel anchored");
-            }
-
-            @Override
-            public void onPanelHidden(View view) {
-                //textView.setText("panel is Hidden");
-            }
-        };
-    }
 
     class DailyWeatherTask extends AsyncTask<Void, Forecast, String> {
 
@@ -197,7 +230,14 @@ public class WeatherActivity extends AppCompatActivity implements WeatherService
         @Override
         protected void onPostExecute(String s) {
             //super.onPostExecute(s);
-            Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Returns the page number represented by this fragment object.
+     */
+    public int getPageNumber() {
+        return mPageNumber;
     }
 }
