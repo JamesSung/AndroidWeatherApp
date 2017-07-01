@@ -5,12 +5,18 @@ A simple weather app using Yahoo weather API.
 2. Sliding up/down layout is applied to show daily weather.
 3. ViewPager is applied to display weather details by city.
 
-![image7](image7.png?raw=true =200x400)
+<img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image7.png" width="200" height="400">
 
-![image6](image6.png =200x400)
 
-![image5](image5.png =200x400)
+<img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image6.png" width="200" height="400">
 
-![image3](image3.png =200x400)
 
-![image4](image4.png =200x400)
+<img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image5.png" width="200" height="400">
+
+
+<img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image4.png" width="200" height="400">
+
+
+<img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image3.png" width="200" height="400">
+
+
