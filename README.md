@@ -14,9 +14,9 @@ A simple weather app using Yahoo weather API.
 <img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image5.png" width="300" height="500">
 
 
-<img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image4.png" width="300" height="500">
-
-
 <img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image3.png" width="300" height="500">
+
+
+<img src="https://github.com/JamesSung/AndroidWeatherApp/blob/master/image4.png" width="300" height="500">
 
 
