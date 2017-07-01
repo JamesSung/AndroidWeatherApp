@@ -5,7 +5,7 @@ A simple weather app using Yahoo weather API.
 2. Sliding up/down layout is applied to show daily weather.
 3. ViewPager is applied to display weather details by city.
 
-![image7](image7.png =200x400)
+![image7](image7.png?raw=true =200x400)
 
 ![image6](image6.png =200x400)
 
